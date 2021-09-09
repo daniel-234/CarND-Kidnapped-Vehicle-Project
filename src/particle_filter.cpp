@@ -67,6 +67,45 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
    *  http://www.cplusplus.com/reference/random/default_random_engine/
    */
 
+  /**
+   * See Lesson 5 Session 21 (Explanation of Project)
+   * 
+   * Using the measurements passed in as arguments, update each particle's 
+   * position estimates and account for sensor noise by adding Gaussian noise. 
+   * Add Gaussian noise by sampling from a Gaussian distribution with mean 
+   * equal to the updated particle position and standard deviation equal to the
+   * standard deviation of the measurements. 
+   *
+   * Equations in Lesson 5 Session 9 (Calculate Prediction Step)
+   *
+   */
+  std::default_random_engine gen;
+
+  for (int i = 0; i < num_particles; i++) {
+    double predicted_x;
+    double predicted_y;
+    double predicted_theta;
+
+    // Lesson 3 Session 4
+    if (yaw_rate == 0) {
+      predicted_x = particles[i].x + velocity * delta_t * cos(particles[i].theta);
+      predicted_y = particles[i].y + velocity * delta_t * sin(particles[i].theta);
+      predicted_theta = particles[i].theta;
+    } else {
+      predicted_x = particles[i].x + velocity / yaw_rate * (sin(particles[i].theta + yaw_rate * delta_t) - sin(particles[i].theta));
+      predicted_y = particles[i].y + velocity / yaw_rate * (cos(particles[i].theta) - cos(particles[i].theta + yaw_rate * delta_t));
+      predicted_theta = particles[i].theta + yaw_rate * delta_t;
+    }
+
+    // Create normal distributions for the new values
+    std::normal_distribution<double> dist_x(predicted_x, std_pos[0]);
+    std::normal_distribution<double> dist_y(predicted_y, std_pos[1]);
+    std::normal_distribution<double> dist_theta(predicted_theta, std_pos[2]);
+
+    particles[i].x = dist_x(gen);
+    particles[i].y = dist_y(gen);
+    particles[i].theta = dist_theta(gen);
+  }
 }
 
 void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted, 
