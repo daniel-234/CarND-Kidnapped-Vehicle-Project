@@ -118,6 +118,7 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   probably find it useful to implement this method and use it as a helper 
    *   during the updateWeights phase.
    */
+  
 
 }
 
@@ -137,7 +138,16 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
-
+  // Lesson 5 Session 20
+  for (int i = 0; i < num_particles; i++) {
+    x_obs = *observations[i].x;
+    y_obs = *observations[i].y;
+    
+    // TODO
+    mu_x = 0;
+    mu_y = 0;
+    particles[i].weight = multiv_prob(std_landmark[0], std_landmark[1], x_obs, y_obs, mu_x, mu_y);
+  }
 }
 
 void ParticleFilter::resample() {

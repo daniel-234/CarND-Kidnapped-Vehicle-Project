@@ -248,4 +248,32 @@ inline bool read_landmark_data(std::string filename,
   return true;
 }
 
+// Taken from the course lesson on particle filters
+//
+/**
+ * Computes a particle's final weight as the product of each measurement's
+ * Multivariate Gaussian probability density.
+ * @param (sig_x,sig_y) standard deviations for x and y
+ * @param (x_obs,y_obs) x and y (map) coordinates of observations
+ * @param (mu_x,mu_y) x and y (map) coordinates of the nearest landmarks
+ * @output A particle weight
+ */
+double multiv_prob(double sig_x, double sig_y, double x_obs, double y_obs,
+                   double mu_x, double mu_y) {
+  // calculate normalization term
+  double gauss_norm;
+  gauss_norm = 1 / (2 * M_PI * sig_x * sig_y);
+
+  // calculate exponent
+  double exponent;
+  exponent = (pow(x_obs - mu_x, 2) / (2 * pow(sig_x, 2)))
+               + (pow(y_obs - mu_y, 2) / (2 * pow(sig_y, 2)));
+    
+  // calculate weight using normalization terms and exponent
+  double weight;
+  weight = gauss_norm * exp(-exponent);
+    
+  return weight;
+}
+
 #endif  // HELPER_FUNCTIONS_H_
