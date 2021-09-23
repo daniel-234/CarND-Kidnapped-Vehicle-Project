@@ -119,7 +119,22 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   during the updateWeights phase.
    */
   
+  // See https://knowledge.udacity.com/questions/689706
+  //
+  // Taking Lesson 5 Section 16 as reference, "predicted" vector contains the 
+  // list of landmarks within particles sensors range. The "observations" vector 
+  // contains the car observations in the car coordinate system. 
+  // The function should update the Observations vector elements with the
+  // transformed observations in map coordinates (associated with the landmarks).
 
+  // Lesson 5 Session 21 - Explanation of Project Code
+  // The "predicted" vector contains the prediction measurements between one
+  // particular particle and all of the map landmarks within sensor range (so
+  // the function needs to be called for each particle). 
+  // The "observations"vector is the actual landmark measurements gathered from
+  // the LIDAR.
+  // This function will perform nearest neighbor data association and assign
+  // each sensor observation the map landmark ID associated with it. 
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
@@ -139,6 +154,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */ 
 
+  // Print the content of the Map landmarks to inspect it
+  std::cout << "\n\nSize of landmarks vector: ";
+  std::cout << map_landmarks.landmark_list.size() << std::endl;
+
+  std::cout << "\n\nVector of observations has these objects: ";
+  std::cout << observations.size() << std::endl;
+
   // Lesson 5 Session 20
   for (int i = 0; i < num_particles; i++) {
     
@@ -152,28 +174,27 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       // Get single_landmark structure members and assign them to a new variable for convenience
       float landmark_x = map_landmarks.landmark_list[l].x_f;
       float landmark_y = map_landmarks.landmark_list[l].y_f;
-      float landmark_id = map_landmarks.landmark_list[l].id_i;
+      int landmark_id = map_landmarks.landmark_list[l].id_i;
 
       // Insert landmarks that are within sensor range of a particle in the particle predictions vector
-      if (abs(landmark_x - particles[i].x) <= sensor_range && abs(landmark_y - particles[i].y <= sensor_range) {
-        predictions.push_back(map_landmarks.landmark_list[l]);
+      if (abs(landmark_x - particles[i].x) <= sensor_range && abs(landmark_y - particles[i].y <= sensor_range)) {
+        predictions.push_back(LandmarkObs{ landmark_id, landmark_x, landmark_y });
       }
     }
 
-    // Print the content of the Map landmarks to inspect it
-    std::cout << "Vector of map landmarks has these objects: \n";
-    std::cout << typeid(map_landmarks).name() << endl;
+    std::cout << "\n\nVector of predictions has these objects: ";
+    std::cout << predictions.size() << std::endl;
 
     // TODO
     // Find the nearest landmark for each observation
-    mu_x = 0;
-    mu_y = 0;
+    double mu_x = 0;
+    double mu_y = 0;
 
     // TODO
     // Convert the observations from the vehicle coordinate's system to the map coordinate's system
 
-    x_obs = observations[i].x;
-    y_obs = observations[i].y;
+    double x_obs = observations[i].x;
+    double y_obs = observations[i].y;
     particles[i].weight = multiv_prob(std_landmark[0], std_landmark[1], x_obs, y_obs, mu_x, mu_y);
   }
 }

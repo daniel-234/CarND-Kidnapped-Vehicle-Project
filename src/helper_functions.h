@@ -258,7 +258,7 @@ inline bool read_landmark_data(std::string filename,
  * @param (mu_x,mu_y) x and y (map) coordinates of the nearest landmarks
  * @output A particle weight
  */
-double multiv_prob(double sig_x, double sig_y, double x_obs, double y_obs,
+inline double multiv_prob(double sig_x, double sig_y, double x_obs, double y_obs,
                    double mu_x, double mu_y) {
   // calculate normalization term
   double gauss_norm;
