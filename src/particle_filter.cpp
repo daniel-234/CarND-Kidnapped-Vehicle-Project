@@ -137,15 +137,43 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   https://www.willamette.edu/~gorr/classes/GeneralGraphics/Transforms/transforms2d.htm
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
-   */
+   */ 
+
   // Lesson 5 Session 20
   for (int i = 0; i < num_particles; i++) {
-    x_obs = *observations[i].x;
-    y_obs = *observations[i].y;
     
+    // Step 1: Predict measurements to all the map landmarks within sensor range for each particle
+    //
+    // Vector of landmarks locations predicted to be within "sensor range" of the particle
+    vector<LandmarkObs> predictions; 
+
+    // https://knowledge.udacity.com/questions/690641 and https://knowledge.udacity.com/questions/181044
+    for (int l = 0; l < map_landmarks.landmark_list.size(); l++) {
+      // Get single_landmark structure members and assign them to a new variable for convenience
+      float landmark_x = map_landmarks.landmark_list[l].x_f;
+      float landmark_y = map_landmarks.landmark_list[l].y_f;
+      float landmark_id = map_landmarks.landmark_list[l].id_i;
+
+      // Insert landmarks that are within sensor range of a particle in the particle predictions vector
+      if (abs(landmark_x - particles[i].x) <= sensor_range && abs(landmark_y - particles[i].y <= sensor_range) {
+        predictions.push_back(map_landmarks.landmark_list[l]);
+      }
+    }
+
+    // Print the content of the Map landmarks to inspect it
+    std::cout << "Vector of map landmarks has these objects: \n";
+    std::cout << typeid(map_landmarks).name() << endl;
+
     // TODO
+    // Find the nearest landmark for each observation
     mu_x = 0;
     mu_y = 0;
+
+    // TODO
+    // Convert the observations from the vehicle coordinate's system to the map coordinate's system
+
+    x_obs = observations[i].x;
+    y_obs = observations[i].y;
     particles[i].weight = multiv_prob(std_landmark[0], std_landmark[1], x_obs, y_obs, mu_x, mu_y);
   }
 }

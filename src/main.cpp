@@ -38,6 +38,7 @@ int main() {
   double sigma_landmark [2] = {0.3, 0.3};
 
   // Read map data
+  // The "map_data.txt" file contains the positions of landmarks in meters (see README lines 124 - 128).
   Map map;
   if (!read_map_data("../data/map_data.txt", map)) {
     std::cout << "Error: Could not open map file" << std::endl;
