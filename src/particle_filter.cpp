@@ -119,11 +119,18 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   during the updateWeights phase.
    */
   
+
+
+  // TODO delete
   // See https://knowledge.udacity.com/questions/689706
   //
   // Taking Lesson 5 Section 16 as reference, "predicted" vector contains the 
-  // list of landmarks within particles sensors range. The "observations" vector 
-  // contains the car observations in the car coordinate system. 
+  // list of landmarks within a single particle sensors range. This function 
+  // gets called for each particle. 
+  // The "observations" vector contains the car observations in the car coordinate system. 
+  // Car observations are its sensor measurements, taken within sensor range. 
+  // 
+  //
   // The function should update the Observations vector elements with the
   // transformed observations in map coordinates (associated with the landmarks).
 
@@ -135,6 +142,15 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
   // the LIDAR.
   // This function will perform nearest neighbor data association and assign
   // each sensor observation the map landmark ID associated with it. 
+
+
+  //DELETE
+  // Print the content of observations and predictions to inspect them.
+  //std::cout << "\nVector of observations has these objects: ";
+  //std::cout << observations.size() << std::endl;
+
+  //std::cout << "Vector of predictions has these objects: ";
+  //std::cout << predicted.size() << std::endl;
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
@@ -152,21 +168,35 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   https://www.willamette.edu/~gorr/classes/GeneralGraphics/Transforms/transforms2d.htm
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
-   */ 
+   */  
 
-  // Print the content of the Map landmarks to inspect it
-  std::cout << "\n\nSize of landmarks vector: ";
-  std::cout << map_landmarks.landmark_list.size() << std::endl;
 
-  std::cout << "\n\nVector of observations has these objects: ";
-  std::cout << observations.size() << std::endl;
+  // Goal: Update each particle's weight based on Multivariate Gaussian distribution (Lesson 5 Session 20)
+  // 
+  // Steps:
+  // 1. Loop through the particles. 
+  // 2. For each particle (remember that a poarticle is a possible position of the car in the map) save a list
+  // of possible landmarks that could be reached within sensor range if the car were in that particle's position. 
+  // 3. Transform each car observation received as argument in map coordinates (Transformations: Lesson 5 Session 17).
+  // 4. Loop through the observations and associate its ID  to the ID of the nearest landmark from the list 
+  // (vector) saved at point 2.
+  // 5. Compute the Multivariate-Gaussian probability density for each observation, taking as x, y those of the 
+  // observation and as mean those of the corresponding landmark (they have corresponding IDs)
+  // 6. The particle's final weight is the product of the single weights. 
+
+
 
   // Lesson 5 Session 20
   for (int i = 0; i < num_particles; i++) {
     
-    // Step 1: Predict measurements to all the map landmarks within sensor range for each particle
-    //
-    // Vector of landmarks locations predicted to be within "sensor range" of the particle
+    // Step 1: Predict measurements to all the map landmarks within sensor range for each particle. 
+    // 
+    // Explanation: If you inspect the "map_data.txt" file, you can see 42 landmarks in it with
+    // their positions in meter. Argument "map_landmarks" is an object of type Map that contains 
+    // a vector of landmarks (all 42 of them were read). 
+    // Insert in a vector of "predictions" the landmarks that are within sensor range for this particle.
+    // 
+    // Vector of landmarks locations predicted to be within "sensor range" of the particle. 
     vector<LandmarkObs> predictions; 
 
     // https://knowledge.udacity.com/questions/690641 and https://knowledge.udacity.com/questions/181044
@@ -182,8 +212,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       }
     }
 
-    std::cout << "\n\nVector of predictions has these objects: ";
-    std::cout << predictions.size() << std::endl;
+    // Create a copy of observations to be passed to the "dataAssociation" function. 
+    vector<LandmarkObs> sensor_observations = observations;
+    dataAssociation(predictions, sensor_observations);    
 
     // TODO
     // Find the nearest landmark for each observation
