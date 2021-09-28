@@ -175,14 +175,16 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // 
   // Steps:
   // 1. Loop through the particles. 
-  // 2. For each particle (remember that a poarticle is a possible position of the car in the map) save a list
+  // 2. For each particle (remember that a particle is a possible position of the car in the map) save a list
   // of possible landmarks that could be reached within sensor range if the car were in that particle's position. 
+  // Create a vector to store that list and call it "predictions".  
   // 3. Transform each car observation received as argument in map coordinates (Transformations: Lesson 5 Session 17).
-  // 4. Loop through the observations and associate its ID  to the ID of the nearest landmark from the list 
+  // To execute this step, take the elements of the "observations" vector and apply a homogeneous transformation. 
+  // 4. Loop through the observations and associate its IDs  to the ID of the nearest landmark from the list 
   // (vector) saved at point 2.
   // 5. Compute the Multivariate-Gaussian probability density for each observation, taking as x, y those of the 
   // observation and as mean those of the corresponding landmark (they have corresponding IDs)
-  // 6. The particle's final weight is the product of the single weights. 
+  // 6. The particle's final weight is the product of the single weights computed at the step before for all observations. 
 
 
 
