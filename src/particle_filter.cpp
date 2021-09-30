@@ -183,23 +183,57 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // 4. Loop through the observations and associate its IDs  to the ID of the nearest landmark from the list 
   // (vector) saved at point 2.
   // 5. Compute the Multivariate-Gaussian probability density for each observation, taking as x, y those of the 
-  // observation and as mean those of the corresponding landmark (they have corresponding IDs)
+  // observation and as mean those of the corresponding landmark (they have corresponding IDs).
   // 6. The particle's final weight is the product of the single weights computed at the step before for all observations. 
 
 
+  // EXPLANATION: If you inspect the "map_data.txt" file, you can see 42 landmarks in it with their positions in meter. 
+  // Argument "map_landmarks" is an object of type Map that contains a vector of those 42 landmarks, each with an ID, 
+  // x position and y position. Those are the ground truth reference values. 
+  //
+  // As the simulator runs, the car moves through the map. The simulator makes noisy observations of the environment at 
+  // time intervals of dt=0.1 sec and sends those noisy observations to the application. Those measurements are made 
+  // with the car sensors, so at each time step the application only receives those that are in range of the car sensors. 
+  // This means that at each time step the number of observations can change and that it is less than the total number 
+  // of landmarks, as the car sensor cannot cover the entire map and there can be landmarks far away from sensor reach. 
+  // We also have to predict the particle observations, given the sensor range. Thus for each particle, only the landmarks 
+  // within the particle position plus the sensor range would be observable. 
+  // These observable landmarks can be thought of as predictions for the particle and inserted into a predictions vector.
+  //
+  // Each time the application receives a message with new measurements (dt=0.1 sec), it runs this function "update_weights" 
+  // that has the vector of new observations from the car, taken in car coordinates. 
+  // This function's purpose is to update the weight of each particle, meaning the weight of each possible car position in 
+  // the map. For each particle, the weight is the product of the weights of each observation. 
+  //
+  // As the observations are in car coordinates system, we need to transform them in map coordinates through a homogeneous
+  // transformation matrix. 
+  // Observations in the car coordinate system can be transformed into map coordinates (x_map and y_map) by passing car
+  // observation coordinates (x_observation and y_observation), map particle coordinates (x_particle and y_particle) and 
+  // the particle rotation angle (theta) to the homogeneous transformation matrix. 
+  //
+  // So for each particle we have to perform a homogeneous transformation for all the observations received. 
+  // 
+  // When all the observations have been transformed into the map's coordinate system, the next step is to associate each 
+  // transformed observation with a landmark identifier. 
+  // How do we do this? We use a nearest neighbour function to calculate the nearest landmark for each transformed 
+  // observation. The nearest landmark is taken from the "predictions" vector. As we associate them, the transformed observation 
+  // takes the nearest landmark ID. 
+  //
+  // That ID will help us solve the last step: compute the weight for each transformed observation, solving a multivariate 
+  // Gaussian distribution evaluated at each x and y observation coordinate, taking as x_mean and y_mean the coordinates
+  // of the landmark with matching IDs.
+  // The final particle weight is the multiplication of these values.
 
   // Lesson 5 Session 20
   for (int i = 0; i < num_particles; i++) {
     
     // Step 1: Predict measurements to all the map landmarks within sensor range for each particle. 
-    // 
-    // Explanation: If you inspect the "map_data.txt" file, you can see 42 landmarks in it with
-    // their positions in meter. Argument "map_landmarks" is an object of type Map that contains 
-    // a vector of landmarks (all 42 of them were read). 
-    // Insert in a vector of "predictions" the landmarks that are within sensor range for this particle.
-    // 
+
     // Vector of landmarks locations predicted to be within "sensor range" of the particle. 
     vector<LandmarkObs> predictions; 
+    // Vector of observation weights. All these values will make for the particle's final weight. 
+    vector<double> observations_weights; 
+
 
     // https://knowledge.udacity.com/questions/690641 and https://knowledge.udacity.com/questions/181044
     for (int l = 0; l < map_landmarks.landmark_list.size(); l++) {
@@ -228,7 +262,21 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
     double x_obs = observations[i].x;
     double y_obs = observations[i].y;
-    particles[i].weight = multiv_prob(std_landmark[0], std_landmark[1], x_obs, y_obs, mu_x, mu_y);
+
+    // observation_weight = multiv_prob(std_landmark[0], std_landmark[1], x_obs, y_obs, mu_x, mu_y);
+
+    // Final weight
+    double final_weight;
+
+    // Loop through the observations vector until it is empty
+    while (!observations_weights.empty()) {
+      // Multiply the last element
+      final_weight*=observations_weights.back();
+      // Remove the last element
+      observations_weights.pop_back();
+    }
+
+    particles[i].weight = final_weight;
   }
 }
 
