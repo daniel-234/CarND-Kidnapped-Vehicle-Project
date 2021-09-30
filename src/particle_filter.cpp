@@ -15,6 +15,7 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <limits>
 
 #include "helper_functions.h"
 
@@ -118,21 +119,6 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   probably find it useful to implement this method and use it as a helper 
    *   during the updateWeights phase.
    */
-  
-
-
-  // TODO delete
-  // See https://knowledge.udacity.com/questions/689706
-  //
-  // Taking Lesson 5 Section 16 as reference, "predicted" vector contains the 
-  // list of landmarks within a single particle sensors range. This function 
-  // gets called for each particle. 
-  // The "observations" vector contains the car observations in the car coordinate system. 
-  // Car observations are its sensor measurements, taken within sensor range. 
-  // 
-  //
-  // The function should update the Observations vector elements with the
-  // transformed observations in map coordinates (associated with the landmarks).
 
   // Lesson 5 Session 21 - Explanation of Project Code
   // The "predicted" vector contains the prediction measurements between one
@@ -143,14 +129,29 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
   // This function will perform nearest neighbor data association and assign
   // each sensor observation the map landmark ID associated with it. 
 
+  double smallest = std::numeric_limits<double>::max();
+  double x_obs;
+  double y_obs;
 
-  //DELETE
-  // Print the content of observations and predictions to inspect them.
-  //std::cout << "\nVector of observations has these objects: ";
-  //std::cout << observations.size() << std::endl;
+  for (int i = 0; i < observations.size(); i++) {
+    x_obs = observations[i].x;
+    y_obs = observations[i].y;
 
-  //std::cout << "Vector of predictions has these objects: ";
-  //std::cout << predicted.size() << std::endl;
+    int nearest_id;
+
+    if (predicted.size() == 0) {
+      observations[i].id = 0;
+    }
+    double temp;
+
+    for (int j = 0; j < predicted.size(); j++) {
+      temp = abs(dist(predicted[j].x, predicted[j].y, x_obs, y_obs));
+      if (temp < smallest) {
+        smallest = temp;
+        nearest_id = predicted[j].id;
+      }
+    } 
+  }
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
@@ -216,7 +217,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // When all the observations have been transformed into the map's coordinate system, the next step is to associate each 
   // transformed observation with a landmark identifier. 
   // How do we do this? We use a nearest neighbour function to calculate the nearest landmark for each transformed 
-  // observation. The nearest landmark is taken from the "predictions" vector. As we associate them, the transformed observation 
+  // observation. The nearest landmark is taken from the "predictions" vector. As we associate them, each transformed observation 
   // takes the nearest landmark ID. 
   //
   // That ID will help us solve the last step: compute the weight for each transformed observation, solving a multivariate 
@@ -271,9 +272,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       transformed_observations.push_back(LandmarkObs{ j, x_map, y_map });
     }
 
-    // Create a copy of observations to be passed to the "dataAssociation" function. 
-    vector<LandmarkObs> sensor_observations = observations;
-    dataAssociation(predictions, sensor_observations);    
+    // Step 4
+    // Associate each transformed observation with a landmark identifier from predictions.
+    dataAssociation(predictions, transformed_observations);    
 
     // TODO
     // Find the nearest landmark for each observation
@@ -283,8 +284,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // TODO
     // Convert the observations from the vehicle coordinate's system to the map coordinate's system
 
-    double x_obs = observations[i].x;
-    double y_obs = observations[i].y;
+    //double x_obs = observations[i].x;
+    //double y_obs = observations[i].y;
 
     // observation_weight = multiv_prob(std_landmark[0], std_landmark[1], x_obs, y_obs, mu_x, mu_y);
 
