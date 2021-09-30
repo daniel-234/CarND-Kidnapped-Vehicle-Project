@@ -224,16 +224,17 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // of the landmark with matching IDs.
   // The final particle weight is the multiplication of these values.
 
+  // Step 1
   // Lesson 5 Session 20
   for (int i = 0; i < num_particles; i++) {
     
-    // Step 1: Predict measurements to all the map landmarks within sensor range for each particle. 
+    // Step 2
+    // Predict measurements to all the map landmarks within sensor range for each particle. 
 
     // Vector of landmarks locations predicted to be within "sensor range" of the particle. 
     vector<LandmarkObs> predictions; 
     // Vector of observation weights. All these values will make for the particle's final weight. 
     vector<double> observations_weights; 
-
 
     // https://knowledge.udacity.com/questions/690641 and https://knowledge.udacity.com/questions/181044
     for (int l = 0; l < map_landmarks.landmark_list.size(); l++) {
@@ -246,6 +247,28 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       if (abs(landmark_x - particles[i].x) <= sensor_range && abs(landmark_y - particles[i].y <= sensor_range)) {
         predictions.push_back(LandmarkObs{ landmark_id, landmark_x, landmark_y });
       }
+    }
+
+    // Step 3
+    // Transform each car observation received as argument in map coordinates.
+
+    // Create a vector of transformed observations.
+    vector<LandmarkObs> transformed_observations;
+    // Define coordinates and theta
+    double x_map, y_map, x_obs, y_obs;
+    double x_part = particles[i].x;
+    double y_part = particles[i].y;
+    double theta = particles[i].theta;
+
+    for (int j = 0; j < observations.size(); j++) {
+      x_obs = observations[j].x;
+      y_obs = observations[j].y;
+      // Transform to map x coordinate.
+      x_map = x_part + (cos(theta) * x_obs) - (sin(theta) * y_obs);
+      // Transform to y map coordinate.
+      y_map = y_part + (sin(theta) * x_obs) + (cos(theta) * y_obs);
+      // Add to vector of transformed observations.
+      transformed_observations.push_back(LandmarkObs{ j, x_map, y_map });
     }
 
     // Create a copy of observations to be passed to the "dataAssociation" function. 
