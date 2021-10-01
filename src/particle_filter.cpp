@@ -171,7 +171,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */  
 
-
   // Goal: Update each particle's weight based on Multivariate Gaussian distribution (Lesson 5 Session 20)
   // 
   // Steps:
@@ -181,9 +180,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // Create a vector to store that list and call it "predictions".  
   // 3. Transform each car observation received as argument in map coordinates (Transformations: Lesson 5 Session 17).
   // To execute this step, take the elements of the "observations" vector and apply a homogeneous transformation. 
-  // 4. Loop through the observations and associate its IDs  to the ID of the nearest landmark from the list 
+  // 4. Loop through the observations and associate its IDs to the ID of the nearest landmark from the list 
   // (vector) saved at point 2.
-  // 5. Compute the Multivariate-Gaussian probability density for each observation, taking as x, y those of the 
+  // 5. Compute the Multivariate-Gaussian probability density for each transformed observation, taking as x, y those of the 
   // observation and as mean those of the corresponding landmark (they have corresponding IDs).
   // 6. The particle's final weight is the product of the single weights computed at the step before for all observations. 
 
@@ -276,19 +275,32 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // Associate each transformed observation with a landmark identifier from predictions.
     dataAssociation(predictions, transformed_observations);    
 
-    // TODO
+    // Step 5
+    // Compute the Multivariate-Gaussian probability density for each transformed observation. 
+
     // Find the nearest landmark for each observation
-    double mu_x = 0;
-    double mu_y = 0;
+    double x_tobs, y_tobs, mu_x, mu_y, observation_weight;
+    double sig_x = std_landmark[0];
+    double sig_y = std_landmark[1];
 
-    // TODO
-    // Convert the observations from the vehicle coordinate's system to the map coordinate's system
+    for (int m = 0; m < transformed_observations.size(); m++) {
+      x_tobs = transformed_observations[m].x;
+      y_tobs = transformed_observations[m].y;
 
-    //double x_obs = observations[i].x;
-    //double y_obs = observations[i].y;
+      // mu_x and mu_y are the coordinates of the nearest landmark to this observation
+      for (int n = 0; n < map_landmarks.landmark_list.size(); n++) {
+        if (map_landmarks.landmark_list[n].id_i == transformed_observations[m].id) {
+          mu_x = map_landmarks.landmark_list[n].x_f;
+          mu_y = map_landmarks.landmark_list[n].y_f;
+        }
+      }
 
-    // observation_weight = multiv_prob(std_landmark[0], std_landmark[1], x_obs, y_obs, mu_x, mu_y);
+      // Compute the multivariate Gaussian probability for this observation.
+      observation_weight = multiv_prob(sig_x, sig_y, x_tobs, y_tobs, mu_x, mu_y);
+      observations_weights.push_back(observation_weight);
+    }
 
+    // Step 6
     // Final weight
     double final_weight;
 
