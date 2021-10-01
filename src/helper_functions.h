@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iostream>
 #include "map.h"
 
 // for portability of M_PI (Vis Studio, MinGW, etc.)
@@ -260,19 +261,25 @@ inline bool read_landmark_data(std::string filename,
  */
 inline double multiv_prob(double sig_x, double sig_y, double x_obs, double y_obs,
                    double mu_x, double mu_y) {
+
+  std::cout << "Observation weight prameters: " << sig_x << "" << sig_y << "" << x_obs << "" << y_obs << "" << mu_x << "" << mu_y << std::endl;
   // calculate normalization term
   double gauss_norm;
   gauss_norm = 1 / (2 * M_PI * sig_x * sig_y);
+
+  std::cout << "Observation Gauss norm: " << gauss_norm << std::endl;
 
   // calculate exponent
   double exponent;
   exponent = (pow(x_obs - mu_x, 2) / (2 * pow(sig_x, 2)))
                + (pow(y_obs - mu_y, 2) / (2 * pow(sig_y, 2)));
+
+  std::cout << "Observation exponent: " << exponent << std::endl;
     
   // calculate weight using normalization terms and exponent
   double weight;
   weight = gauss_norm * exp(-exponent);
-    
+  std::cout << "Observation Weight: " << weight << std::endl;
   return weight;
 }
 

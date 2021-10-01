@@ -129,7 +129,6 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
   // This function will perform nearest neighbor data association and assign
   // each sensor observation the map landmark ID associated with it. 
 
-  double smallest = std::numeric_limits<double>::max();
   double x_obs;
   double y_obs;
 
@@ -139,10 +138,17 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
 
     int nearest_id;
 
+
+    //std::cout << "NOT yet associated ID: " << observations[i].id  << std::endl;
+
+
     if (predicted.size() == 0) {
       observations[i].id = 0;
     }
     double temp;
+    double smallest = std::numeric_limits<double>::max();
+
+    //std::cout << "smallest: " << smallest  << std::endl;
 
     for (int j = 0; j < predicted.size(); j++) {
       temp = abs(dist(predicted[j].x, predicted[j].y, x_obs, y_obs));
@@ -150,7 +156,12 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
         smallest = temp;
         nearest_id = predicted[j].id;
       }
-    } 
+    }
+    
+    observations[i].id = nearest_id;
+    
+    //std::cout << "Data associations: " << observations[i].x << " " << observations[i].y << std::endl; 
+    //std::cout << "Associated ID: " << observations[i].id  << std::endl;
   }
 }
 
@@ -269,7 +280,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       y_map = y_part + (sin(theta) * x_obs) + (cos(theta) * y_obs);
       // Add to vector of transformed observations.
       transformed_observations.push_back(LandmarkObs{ j, x_map, y_map });
+
+      //std::cout << "Transformed observations: " << transformed_observations[j].x << " " << transformed_observations[j].y << std::endl;
     }
+
+    // DELETE
+    //std::cout << "Predictions: " << predictions << std::endl;
+    //std::cout << "Transformed observations: " << transformed_observations << std::endl;
+
 
     // Step 4
     // Associate each transformed observation with a landmark identifier from predictions.
@@ -295,8 +313,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         }
       }
 
+      //std::cout << "Observation weight prameters: " << sig_x << " " << sig_y << " " << x_tobs << " " << y_tobs << " " << mu_x << " " << mu_y << std::endl;
       // Compute the multivariate Gaussian probability for this observation.
       observation_weight = multiv_prob(sig_x, sig_y, x_tobs, y_tobs, mu_x, mu_y);
+      //std::cout << "Observation weight: " << particles[i].weight << std::endl;
+
+      // DELETE
+      //std::cout << "Observations weight: " << observation_weight << std::endl;
       observations_weights.push_back(observation_weight);
     }
 
@@ -313,7 +336,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
 
     particles[i].weight = final_weight;
-    // std::cout << particles[i].weight << std::endl;
+
+    // DELETE
+    //std::cout << "Particle weight: " << particles[i].weight << std::endl;
   }
 }
 
