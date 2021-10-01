@@ -302,7 +302,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
     // Step 6
     // Final weight
-    double final_weight;
+    double final_weight = 1;
 
     // Loop through the observations vector until it is empty
     while (!observations_weights.empty()) {
@@ -313,6 +313,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
 
     particles[i].weight = final_weight;
+    // std::cout << particles[i].weight << std::endl;
   }
 }
 
@@ -324,6 +325,24 @@ void ParticleFilter::resample() {
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
 
+  // Set up the random generator
+  std::random_device rd;
+  std::mt19937 generator(rd());
+
+  // Store all the weights into a vector
+  std::vector<double> weights;
+  for (int i = 0; i < num_particles; i++) {
+    weights.push_back(particles[i].weight);
+  }
+
+  // Create a discrete distribution with those weights
+  std::discrete_distribution<> distribution(weights.begin(), weights.end());
+
+  double new_weight;
+  for (int n = 0; n < num_particles; n++) {
+    new_weight = distribution(generator);
+    particles[n].weight = new_weight;
+  }
 }
 
 void ParticleFilter::SetAssociations(Particle& particle, 
