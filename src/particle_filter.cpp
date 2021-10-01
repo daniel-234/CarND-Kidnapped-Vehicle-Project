@@ -307,10 +307,16 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
       // mu_x and mu_y are the coordinates of the nearest landmark to this observation
       for (int n = 0; n < map_landmarks.landmark_list.size(); n++) {
+        
+        //std::cout << "Map landmark ID: " << map_landmarks.landmark_list[n].id_i << std::endl;
+        //std::cout << "Transformed observation ID: " << transformed_observations[m].id << std::endl;
+        
         if (map_landmarks.landmark_list[n].id_i == transformed_observations[m].id) {
           mu_x = map_landmarks.landmark_list[n].x_f;
           mu_y = map_landmarks.landmark_list[n].y_f;
-        }
+          
+          //std::cout << "Transformed observation ID: " << transformed_observations[m].id << std::endl;
+        } 
       }
 
       //std::cout << "Observation weight prameters: " << sig_x << " " << sig_y << " " << x_tobs << " " << y_tobs << " " << mu_x << " " << mu_y << std::endl;
