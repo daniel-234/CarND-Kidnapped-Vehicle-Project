@@ -392,12 +392,16 @@ void ParticleFilter::resample() {
 
   // Create a discrete distribution with those weights
   std::discrete_distribution<> distribution(weights.begin(), weights.end());
+  // Create a vector to host the replaced particles
+  vector<Particle> replaced_particles;
 
-  double new_weight;
   for (int n = 0; n < num_particles; n++) {
-    new_weight = distribution(generator);
-    particles[n].weight = new_weight;
+    // Get a new particle from the distribution
+    Particle replaced_particle = particles[distribution(generator)];
+    replaced_particles.push_back(replaced_particle);
   }
+  // Replace the old particles vector with the new one
+  particles = replaced_particles;
 }
 
 void ParticleFilter::SetAssociations(Particle& particle, 
