@@ -235,6 +235,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // of the landmark with matching IDs.
   // The final particle weight is the multiplication of these values.
 
+  // Store the sum of all particles weights
+  double weights_sum = 0;
+
+  for (int j = 0; j < num_particles; j++) {
+    weights_sum += particles[j].weight;
+
+  }
+  
   // Step 1
   // Lesson 5 Session 20
   for (int i = 0; i < num_particles; i++) {
@@ -319,9 +327,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         } 
       }
 
+      // calculate normalization term
+      double gauss_norm = 1 / (2 * M_PI * sig_x * sig_y);
+
       //std::cout << "Observation weight prameters: " << sig_x << " " << sig_y << " " << x_tobs << " " << y_tobs << " " << mu_x << " " << mu_y << std::endl;
       // Compute the multivariate Gaussian probability for this observation.
-      observation_weight = multiv_prob(sig_x, sig_y, x_tobs, y_tobs, mu_x, mu_y);
+      observation_weight = multiv_prob(gauss_norm, sig_x, sig_y, x_tobs, y_tobs, mu_x, mu_y);
       //std::cout << "Observation weight: " << particles[i].weight << std::endl;
 
       // DELETE
@@ -341,11 +352,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       observations_weights.pop_back();
     }
 
-    particles[i].weight = final_weight;
-
+    particles[i].weight = final_weight / weights_sum;
+    
     // DELETE
     //std::cout << "Particle weight: " << particles[i].weight << std::endl;
   }
+  
 }
 
 void ParticleFilter::resample() {
@@ -362,10 +374,10 @@ void ParticleFilter::resample() {
 
   // Store all the weights into a vector
   std::vector<double> weights;
-  for (int i = 0; i < num_particles; i++) {
-    weights.push_back(particles[i].weight);
+  // Add the normalized weights of all particles
+  for (int j = 0; j < num_particles; j++) {
+    weights.push_back(particles[j].weight);
   }
-
   // Create a discrete distribution with those weights
   std::discrete_distribution<> distribution(weights.begin(), weights.end());
 
