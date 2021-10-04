@@ -261,20 +261,14 @@ inline bool read_landmark_data(std::string filename,
  */
 inline double multiv_prob(double gauss_norm, double sig_x, double sig_y, double x_obs, double y_obs,
                    double mu_x, double mu_y) {
-
-  //std::cout << "Observation weight prameters: " << gauss_norm << " " << x_obs << " " << y_obs << " " << mu_x << " " << mu_y << std::endl;
-
   // calculate exponent
   double exponent;
   exponent = (pow(x_obs - mu_x, 2) / (2 * pow(sig_x, 2)))
-               + (pow(y_obs - mu_y, 2) / (2 * pow(sig_y, 2)));
-
-  //std::cout << "Observation exponent: " << exponent << std::endl;
-    
+               + (pow(y_obs - mu_y, 2) / (2 * pow(sig_y, 2)));    
   // calculate weight using normalization terms and exponent
   double weight;
   weight = gauss_norm * exp(-exponent);
-  //std::cout << "Observation Weight: " << weight << std::endl;
+  
   return weight;
 }
 

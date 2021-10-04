@@ -136,19 +136,12 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
     x_obs = observations[i].x;
     y_obs = observations[i].y;
 
+    // Store the id of the particle with the lower distance as the loop goes 
+    // over the predicted landmarks. 
     int nearest_id;
-
-
-    //std::cout << "NOT yet associated ID: " << observations[i].id  << std::endl;
-
-
-    if (predicted.size() == 0) {
-      observations[i].id = 0;
-    }
+    // Store the temporary distance at each loop iteration.
     double temp;
     double smallest = std::numeric_limits<double>::max();
-
-    //std::cout << "smallest: " << smallest  << std::endl;
 
     for (int j = 0; j < predicted.size(); j++) {
       temp = abs(dist(predicted[j].x, predicted[j].y, x_obs, y_obs));
@@ -158,10 +151,8 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
       }
     }
     
+    // Assign the nearest landmark id to this measurement
     observations[i].id = nearest_id;
-    
-    //std::cout << "Data associations: " << observations[i].x << " " << observations[i].y << std::endl; 
-    //std::cout << "Associated ID: " << observations[i].id  << std::endl;
   }
 }
 
@@ -283,14 +274,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       y_map = y_part + (sin(theta) * x_obs) + (cos(theta) * y_obs);
       // Add to vector of transformed observations.
       transformed_observations.push_back(LandmarkObs{ j, x_map, y_map });
-
-      //std::cout << "Transformed observations: " << transformed_observations[j].x << " " << transformed_observations[j].y << std::endl;
     }
-
-    // DELETE
-    //std::cout << "Predictions: " << predictions << std::endl;
-    //std::cout << "Transformed observations: " << transformed_observations << std::endl;
-
 
     // Step 4
     // Associate each transformed observation with a landmark identifier from predictions.
@@ -310,30 +294,20 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
       // mu_x and mu_y are the coordinates of the nearest landmark to this observation
       for (int n = 0; n < predictions.size(); n++) {
-        
-        //std::cout << "Map landmark ID: " << map_landmarks.landmark_list[n].id_i << std::endl;
-        //std::cout << "Transformed observation ID: " << transformed_observations[m].id << std::endl;
-        
         if (predictions[n].id == transformed_observations[m].id) {
           mu_x = predictions[n].x;
           mu_y = predictions[n].y;
-          
-          //std::cout << "Transformed observation ID: " << transformed_observations[m].id << std::endl;
         } 
       }
 
       // calculate normalization term
       double gauss_norm = 1 / (2 * M_PI * sig_x * sig_y);
 
-      //std::cout << "Observation weight prameters: " << sig_x << " " << sig_y << " " << x_tobs << " " << y_tobs << " " << mu_x << " " << mu_y << std::endl;
       // Compute the multivariate Gaussian probability for this observation.
       observation_weight = multiv_prob(gauss_norm, sig_x, sig_y, x_tobs, y_tobs, mu_x, mu_y);
-      //std::cout << "Observation weight: " << particles[i].weight << std::endl;
 
       if (observation_weight) {
         observations_weights.push_back(observation_weight);
-        // DELETE
-        std::cout << "Observations weight: " << observation_weight << std::endl;
       }
     }
 
@@ -344,9 +318,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // Loop through the observations vector until it is empty
     while (!observations_weights.empty()) {
       // Multiply the last element
-      
-      // DELETE
-      //std::cout << "weights: " << final_weight << std::endl;
       final_weight*=observations_weights.back();
       // Remove the last element
       observations_weights.pop_back();
@@ -356,18 +327,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     particles[i].weight = final_weight;
     // Update the weight value in the vector of weights. 
     weights[i] = final_weight;
-    std::cout << "weights: " << i << " " << final_weight << std::endl;
     // Update the weights sum
     weights_sum += final_weight;
-    
-    // DELETE
-    //std::cout << "Particle weight: " << particles[i].weight << std::endl;
   }
   
   // Normalize the particles weights in the weights vector.
   for (int k = 0; k < weights.size(); k++) {
-    weights[k] = weights[k] / weights_sum;
-    
+    weights[k] = weights[k] / weights_sum;    
   }  
 }
 
@@ -379,16 +345,9 @@ void ParticleFilter::resample() {
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
 
-  // Set up the random generator
+  // Set up a random generator
   std::random_device rd;
   std::mt19937 generator(rd());
-
-  // Store all the weights into a vector
-  //std::vector<double> weights;
-  // Add the normalized weights of all particles
-  //for (int j = 0; j < num_particles; j++) {
-  //  weights.push_back(particles[j].weight);
-  //}
 
   // Create a discrete distribution with those weights
   std::discrete_distribution<> distribution(weights.begin(), weights.end());
